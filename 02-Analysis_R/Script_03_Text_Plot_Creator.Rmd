@@ -1,0 +1,716 @@
+---
+title: "Text and Plot creator for WP10 Starmaze project"
+author: "Patrizia Maier"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  bookdown::word_document2:
+    fig_caption: yes
+    global_numbering: TRUE
+    number_sections: TRUE
+---
+
+```{r setup, include=FALSE, cache=FALSE}
+knitr::read_chunk('Script_02_Analyzer.R')
+knitr::opts_chunk$set(warning=FALSE, message=FALSE) 
+options(knitr.kable.NA='')
+```
+
+```{r, load_analysis_packages, include=FALSE, cache=FALSE}
+```
+
+```{r, include=FALSE}
+file_name <- "../WP10_data/WP10_results/wp10_navigation_data.RData"
+load(file_name)
+sm_orig <- sm_data 
+sm_data <- sm_data %>% filter(exclude_trial_matlab==0)
+rm(file_name)
+
+demographics <- sm_orig %>% 
+  filter(session==1, trial==1) %>% 
+  select(id, sex, group)
+
+n_group <- demographics %>% group_by(group) %>% count()
+n_group_sex <- demographics %>% group_by(group) %>% count(sex)
+
+n_YK <- n_group %>% filter(group=="YoungKids") %>% pull
+n_YK_f <- n_group_sex %>% filter(group=="YoungKids", sex=="Female") %>% pull
+n_YK_m <- n_group_sex %>% filter(group=="YoungKids", sex=="Male") %>% pull
+
+n_OK <- n_group %>% filter(group=="OldKids") %>% pull
+n_OK_f <- n_group_sex %>% filter(group=="OldKids", sex=="Female") %>% pull
+n_OK_m <- n_group_sex %>% filter(group=="OldKids", sex=="Male") %>% pull
+
+n_AD <- n_group %>% filter(group=="YoungAdults") %>% pull
+n_AD_f <- n_group_sex %>% filter(group=="YoungAdults", sex=="Female") %>% pull
+n_AD_m <- n_group_sex %>% filter(group=="YoungAdults", sex=="Male") %>% pull
+
+rm(demographics, n_group, n_group_sex)
+```
+
+```{r, include=FALSE}
+file_name <- "../WP10_data/WP10_results/wp10_post_navigation_data.RData"
+load(file_name)
+rm(file_name)
+
+n_group_post <- pt_data %>% 
+  filter(trial==1) %>% 
+  select(id, sex, group) %>% 
+  group_by(group) %>% count()
+
+n_YK_p <- n_group_post %>% filter(group=="YoungKids") %>% pull
+n_OK_p <- n_group_post %>% filter(group=="OldKids") %>% pull
+n_AD_p <- n_group_post %>% filter(group=="YoungAdults") %>% pull
+
+rm(n_group_post)
+```
+
+```{r, include=FALSE}
+file_name <- "../WP10_data/WP10_results/wp10_plsc_by_age.mat"
+plsc_data_learn <- read.mat(file_name)
+rm(file_name)
+```
+
+```{r, data_prep, include=FALSE}
+```
+
+```{r, plot_settings, include=FALSE}
+```
+
+```{r, analysis_settings, include=FALSE}
+```
+
+```{r, papaja_output_helper, include=FALSE}
+```
+
+# Methods 
+
+## Sample
+Cross-sectional comparison between
+
+* 6-8 year-old children: n = `r n_YK` (female `r n_YK_f`/ male `r n_YK_m`); non-navigational data for n = `r n_YK_p`
+* 9-11 year-old children: n = `r n_OK` (female `r n_OK_f`/ male `r n_OK_m`); non-navigational data for n = `r n_OK_p`
+* 18-35 year-old adults:  n = `r n_AD` (female `r n_AD_f`/ male `r n_AD_m`); non-navigational data for n = `r n_AD_p`
+
+```{r, include=FALSE}
+rm(n_YK, n_YK_f, n_YK_m, n_YK_p, n_OK, n_OK_f, n_OK_m, n_OK_p, n_AD, n_AD_f, n_AD_m, n_AD_p)
+```
+
+
+## Variables of interest
+
+In training trials, the goal is visible, i.e. the trial is always completed successfully. In probe trials, the goal is not visible. Participants go to the place where they remember the goal being located and press a button. 
+
+*Memory accuracy*
+
+* **Memory score** 
+$$\text{Memory error (Euclidean distance)} = \sqrt{(x_{correct}-x_{remembered})^2 + (y_{correct}-y_{remembered})^2}$$
+$$\text{Memory score} = \text{percentile rank of memory error on random error distribution}$$
+
+*Navigation behavior*
+
+* **Latency**
+* **Excess path length** 
+$$\text{(Ideal) path length} = \sum_{i=1}^{n} \sqrt{(x_{i}-x_{i+1})^2 + (y_{i}-y_{i+1})^2}$$
+$$\text{Excess path length} = (path-path_{ideal})$$
+* **Excess distance to goal**
+$$\text{(Ideal) distance to goal} = \frac {\sum_{i=1}^{n}\sqrt{(x_{i}-x_{correct})^2 + (y_{i}-y_{correct})^2}} {n}$$
+$$\text{Excess distance to goal} = (distance-distance_{ideal})$$
+* **Initial rotation**
+$$\text{Initial rotation} = \sum_{i=1}^{n_{initial}} | (z_{i}-z_{i+1})| $$
+
+![Visualization of variables of interest](./pics/Var_all.jpg){width=300px,height=500x}
+\newpage
+
+# Results 
+
+## Navigation behavior in learning session training trials
+
+### **Latency (training trials)**
+
+```{r, model_train_latency}
+```
+
+```{r, post_hoc_train_latency, include=F}
+```
+
+```{r, plot_train_latency, include=F}
+```
+
+```{r apa_train_latency, include=F}
+R2 <- r2beta(model.latency_train$full_model, method='nsj', partial=F) %>% mutate_all(apa_num)
+
+apa_lmm.train_latency <- apa_print(model.latency_train)
+
+apa_post.train_latency_group <- post.train_latency_group %>% apa_print() %>% apa_bonferroni_fix()
+
+apa_post.train_latency_trial <- post.train_latency_trial %>% apa_print() %>% apa_bonferroni_fix()
+
+rm(post.train_latency_group, post.train_latency_trial)
+```
+
+The model had a fit of $R2 = `r R2$Rsq`, [CI: `r R2$upper.CL`, `r R2$lower.CL`$].
+
+We first computed LMMs for latency, excess path length, excess distance to goal and initial rotation in training trials and tested for changes across trials (learning curves) and age differences (see statistics in Table 2; Figure 2A). 
+
+Latency decreased significantly across training trials (`r gsub(".*, ", "", apa_lmm.train_latency$statistic$trial_in_block)`). In addition, there was a main effect of age group, showing that 6-8YO children required significantly more time to complete the training trials than 9-11YO children (`r apa_post.train_latency_group$statistic$YoungKids_OldKids`) and adults (`r  apa_post.train_latency_group$statistic$YoungKids_YoungAdults`). 
+
+```{r, include=F}
+rm(model.latency_train, R2, apa_lmm.train_latency, apa_post.train_latency_group, apa_post.train_latency_trial)
+```
+
+### **Excess path length (training trials)**
+
+```{r, model_train_path }
+```
+
+```{r, post_hoc_train_path, include=F}
+```
+
+```{r, plot_train_path, include=F}
+```
+
+```{r apa_train_path, include=F}
+R2 <- r2beta(model.path_train$full_model, method='nsj', partial=F) %>% mutate_all(apa_num)
+
+apa_lmm.train_path <- apa_print(model.path_train)
+
+apa_post.train_path_group <- post.train_path_group %>% apa_print() %>% apa_bonferroni_fix()
+
+apa_post.train_path_trial <- post.train_path_trial %>% apa_print() %>% apa_bonferroni_fix()
+
+rm(post.train_path_group, post.train_path_trial)
+```
+
+The model had a fit of $R2 = `r R2$Rsq`, [CI: `r R2$upper.CL`, `r R2$lower.CL`$].
+
+Similarly, participants had a significant decrease in excess path length across trials (`r gsub(".*, ", "", apa_lmm.train_path$statistic$trial_in_block)`). When comparing the age groups, we found that 6-8YO children had longer excess paths than 9-11YO children (`r apa_post.train_path_group$statistic$YoungKids_OldKids`) and adults (`r apa_post.train_path_group$statistic$YoungKids_YoungAdults`) and 9-11YO children had longer excess paths than adults (`r apa_post.train_path_group$statistic$OldKids_YoungAdults`). 
+
+```{r, include=F}
+rm(model.path_train, R2, apa_lmm.train_path, apa_post.train_path_group, apa_post.train_path_trial)
+```
+
+### **Excess distance to goal (training trials)**
+
+```{r, model_train_distance }
+```
+
+```{r, post_hoc_train_distance, include=F}
+```
+
+```{r, plot_train_distance, include=F}
+```
+
+```{r apa_train__distance, include=F}
+R2 <- r2beta(model.distance_train$full_model, method='nsj', partial=F) %>% mutate_all(apa_num)
+
+apa_lmm.train_distance <- apa_print(model.distance_train)
+
+apa_post.train_distance_group <- post.train_distance_group %>% apa_print() %>% apa_bonferroni_fix()
+
+apa_post.train_distance_trial <- post.train_distance_trial %>% apa_print() %>% apa_bonferroni_fix()
+
+rm(post.train_distance_group, post.train_distance_trial)
+```
+
+(ref:l-ed-caption-f0) Fixed effects for excess distance to goal in training.
+
+The model had a fit of $R2 = `r R2$Rsq`, [CI: `r R2$upper.CL`, `r R2$lower.CL`$].
+
+Participants also showed a significant decrease in excess distance to goal across trials (`r gsub(".*, ", "", apa_lmm.train_distance$statistic$trial_in_block)`), meaning that they searched closer to the goal location after the first trial. Again, there was a general age difference, indicating that 6-8YO children searched further away from the goal location than 9-11YO children (`r apa_post.train_distance_group$statistic$YoungKids_OldKids`) and adults (`r apa_post.train_distance_group$statistic$YoungKids_YoungAdults`). 
+
+```{r, include=F}
+rm(model.distance_train, R2, apa_lmm.train_distance, apa_post.train_distance_group, apa_post.train_distance_trial)
+```
+
+### **Initial rotation (training trials)**
+
+```{r, model_train_initial_rotation }
+```
+
+```{r, post_hoc_train_initial_rotation, include=F}
+```
+
+```{r, plot_train_initial_rotation, include=F}
+```
+
+```{r apa_train_initial_rotation, include=F}
+R2 <- r2beta(model.initial_rotation_train$full_model, method='nsj', partial=F) %>% mutate_all(apa_num)
+
+apa_lmm.train_initial_rotation <- apa_print(model.initial_rotation_train)
+
+apa_post.train_initial_rotation_group_trial <- post.train_initial_rotation_group_trial %>% apa_print() %>% apa_bonferroni_fix()
+
+rm(post.train_initial_rotation_group_trial)
+```
+
+The model had a fit of $R2 = `r R2$Rsq`, [CI: `r R2$upper.CL`, `r R2$lower.CL`$].
+
+For initial rotation there was a significant interaction between trial and age group (`r gsub(".*, ", "", apa_lmm.train_initial_rotation$statistic$group_trial_in_block)`). Initial rotation decreased across trials in adults only (`r apa_post.train_initial_rotation_group_trial$statistic$YoungAdults_Linear`) but stayed constant in children. This indicates that adults, but not children, adjusted their visual exploration at the first decision point according to task demands. 
+
+Taken together, participants from all age groups were able to significantly improve their navigation behavior across training trials. Younger participants had a less efficient navigation behavior, which was characterized by slower navigation (latency), less direct navigation (excess path length), less focused search behavior (excess distance to goal) and a lack of visual exploration during orientation (initial rotation). Navigation differences were pronounced between 6-8YO children in comparison to 9-10YO children and adults, but less evident when comparing 9-10YO children to adults.
+
+```{r, include=F}
+rm(model.initial_rotation_train, R2, apa_lmm.train_initial_rotation, apa_post.train_initial_rotation_group_trial)
+```
+
+```{r, include=F}
+plot.latency_train <- plot.latency_train + theme(legend.position="none")
+ggsave("../WP10_data/Plots/latency_train.jpg", plot.latency_train, width=3.7, height=3.0, dpi=600)
+
+plot.path_train <- plot.path_train + theme(legend.position="none")
+ggsave("../WP10_data/Plots/path_train.jpg", plot.path_train, width=3.7, height=3.0, dpi=600)
+
+plot.distance_train <- plot.distance_train + theme(legend.position="none")
+ggsave("../WP10_data/Plots/distance_train.jpg", plot.distance_train, width=3.7, height=3.0, dpi=600)
+
+plot.initial_rotation_train <- plot.initial_rotation_train + theme(legend.position="none")
+ggsave("../WP10_data/Plots/initial_rotation_train.jpg", plot.initial_rotation_train, width=3.7, height=3.0, dpi=600)
+
+rm(plot.latency_train, plot.path_train, plot.distance_train, plot.initial_rotation_train)
+```
+
+\newpage
+
+## Memory in learning session
+
+### **Memory score (all probe trials)**
+
+```{r, model_probe_ms }
+```
+
+```{r, fixef_probe_ms, include=F }
+```
+
+```{r, ranef_probe_ms, include=F }
+```
+
+```{r, post_hoc_probe_ms, include=F }
+```
+
+```{r, plot_probe_ms, include=F }
+```
+
+```{r apa_probe_ms, include=F}
+
+# model fit 
+R2 <- r2beta(model.ms$full_model, method='nsj', partial=F) %>% mutate_all(apa_num)
+
+# fixed effects 
+apa_lmm.ms <- apa_print(model.ms)
+
+# group x condition
+apa_post.ms_omega_group_condition <- omega.ms %>% 
+  filter(Parameter=="group:condition") %>% select(Omega2_partial) %>% apa_num()
+
+apa_post.ms_group_condition <- post.ms_group_condition %>% apa_print() %>% apa_bonferroni_fix()
+
+# group 
+apa_post.ms_omega_group <- omega.ms %>% 
+  filter(Parameter=="group") %>% select(Omega2_partial) %>% apa_num()
+
+apa_post.ms_group <- post.ms_group %>%  apa_print() %>% apa_bonferroni_fix()
+apa_post.ms_group_chance <- post.ms_group_chance %>%  apa_print() %>% apa_bonferroni_fix()
+
+# condition 
+apa_post.ms_omega_condition <- omega.ms %>% 
+  filter(Parameter=="condition") %>% select(Omega2_partial) %>% apa_num()
+
+apa_post.ms_condition <- post.ms_condition %>%  apa_print()
+
+# random effects LRT 
+apa_rs.condition <- LRT.ms %>% mutate_at(vars(Chisq, Df), apa_df) %>% mutate_at(vars(p), apa_p, add_equals=T)
+
+
+rm(post.ms_group, post.ms_group_chance, post.ms_condition, LRT.ms, omega.ms)
+```
+
+The model had a fit of $R2 = `r R2$Rsq`, [CI: `r R2$upper.CL`, `r R2$lower.CL`$].
+
+Next, we analyzed participant's immediate egocentric and allocentric spatial memory in learning session probe trials. The LMM for memory score revealed significant main effects of age group (`r gsub(".*, ", "", apa_lmm.ms$statistic$group)`; see statistics in Table 3; Figure 2B) and condition (`r gsub(".*, ", "", apa_lmm.ms$statistic$condition)`). Participants in all age groups reached above chance-level performance (tests against 0.5 all p < .001, see supplement Results A). 6-8YO children had worse immediate spatial memory than 9-11YO children (`r apa_post.ms_group$statistic$YoungKids_OldKids`) and adults (`r apa_post.ms_group$statistic$YoungKids_YoungAdults`). 9-11YO children had worse immediate spatial memory than adults (`r apa_post.ms_group$statistic$OldKids_YoungAdults`). Participants had better egocentric than allocentric memory. There was a trend for an interaction between condition and age group (`r gsub(".*, ", "", apa_lmm.ms$statistic$group_condition)`), indicating that the egocentric advantage was pronounced in 9-11YO children (`r apa_post.ms_group_condition$statistic$OldKids_Egoret_alloret`) but not 6-8YO children (`r apa_post.ms_group_condition$statistic$YoungKids_Egoret_alloret`) or adults (`r apa_post.ms_group_condition$statistic$YoungAdults_Egoret_alloret`). The LMM had a significantly better fit when including the random slope for condition ($\chi^2$(`r apa_rs.condition$Df`) = `r apa_rs.condition$Chisq`, p `r apa_rs.condition$p`), indicating substantial interindividual variation in the condition response.
+
+Taken together, immediate egocentric and allocentric spatial memory improved with increasing age. Particularly 9-11YO children exhibited better spatial memory in the egocentric compared to the allocentric condition.
+
+SUPPLEMENT: Participants in all age groups reached above chance-level performance for the memory score in the learning session. Tests against 0.5 for 6-8YO children: `r apa_post.ms_group_chance$full_result$YoungKids`, 9-11YO children: `r apa_post.ms_group_chance$full_result$OldKids`, and adults: `r apa_post.ms_group_chance$full_result$YoungAdults`. 
+
+```{r, include=F}
+plot.ms <- plot.ms + theme(legend.position="none")
+ggsave("../WP10_data/Plots/memory_probe_1.jpg", plot.ms, width=3.5, height=3, dpi=600)
+
+rm(plot.ms)
+```
+
+```{r, include=F}
+rm(model.ms, R2, apa_lmm.ms, apa_post.ms_group, apa_post.ms_group_chance, apa_post.ms_condition, apa_post.ms_group_condition, apa_post.ms_omega_group, apa_post.ms_omega_condition, apa_post.ms_omega_group_condition, apa_rs.condition)
+```
+
+\newpage
+
+## Memory consolidation across sessions  
+
+### **Memory score (all probe trials)**
+
+```{r, model_probe_ms_all }
+```
+
+```{r, fixef_probe_ms_all, include=F }
+```
+
+```{r, ranef_probe_ms_all, include=F }
+```
+
+```{r, post_hoc_probe_ms_all, include=F }
+```
+
+```{r, plot_probe_ms_all, include=F }
+```
+
+```{r apa_probe_ms_all, include=F}
+
+# model fit 
+R2 <- r2beta(model.ms_all$full_model, method='nsj', partial=F) %>% mutate_all(apa_num)
+
+# fixed effects 
+apa_lmm.ms_all <- apa_print(model.ms_all)
+
+# group 
+apa_post.ms_all_omega_group <- omega.ms_all %>% 
+  filter(Parameter=="group") %>% select(Omega2_partial) %>% apa_num()
+
+apa_post.ms_all_group <- post.ms_all_group %>%  apa_print() %>% apa_bonferroni_fix()
+apa_post.ms_all_group_chance <- post.ms_all_group_chance %>%  apa_print() %>% apa_bonferroni_fix()
+
+# condition 
+apa_post.ms_all_omega_condition <- omega.ms_all %>% 
+  filter(Parameter=="condition") %>% select(Omega2_partial) %>% apa_num()
+
+apa_post.ms_all_condition <- post.ms_all_condition %>%  apa_print()
+
+# session 
+apa_post.ms_all_omega_session <- omega.ms_all %>% 
+  filter(Parameter=="session") %>% select(Omega2_partial) %>% apa_num()
+
+apa_post.ms_all_session <- post.ms_all_session %>%  apa_print()
+
+# random effects LRT 
+apa_rs.condition <- LRT.ms_all_condition %>% mutate_at(vars(Chisq, Df), apa_df) %>% mutate_at(vars(p), apa_p, add_equals=T)
+apa_rs.session <- LRT.ms_all_session %>% mutate_at(vars(Chisq, Df), apa_df) %>% mutate_at(vars(p), apa_p, add_equals=T)
+
+
+rm(post.ms_all_group, post.ms_all_group_chance, post.ms_all_condition, post.ms_all_session, LRT.ms_all_condition, LRT.ms_all_session, omega.ms_all)
+```
+
+Next, we analyzed spatial memory consolidation. The LMM for memory score revealed main effects of age group (`r gsub(".*, ", "", apa_lmm.ms_all$statistic$group)`; see statistics in Table 4; Figure 3A), session (`r gsub(".*, ", "", apa_lmm.ms_all$statistic$session)`) and condition (`r gsub(".*, ", "", apa_lmm.ms_all$statistic$condition)`). In parallel to our previous analysis, memory generally improved with increasing age, and we observed better memory in the egocentric than the allocentric condition. None of the interactions with condition were significant (all $p$ > .224), meaning that the egocentric advantage was consistent across age groups and sessions. Memory declined significantly over two weeks but the interaction between age group and session was not significant (`r gsub(".*, ", "", apa_lmm.ms_all$statistic$group_session)`), indicating similar robustness of spatial memory retention across age groups. The LMM had a significantly better fit when including the random slope for session ($\chi^2$(`r apa_rs.session$Df`) = `r apa_rs.session$Chisq`, p `r apa_rs.session$p`), indicating substantial interindividual variation in forgetting rates across the two-week delay. Likewise, the model fit improved when including the random slope for condition ($\chi^2$(`r apa_rs.condition$Df`) = `r apa_rs.condition$Chisq`, p `r apa_rs.condition$p`), indicating substantial interindividual variation in the condition response. Due to the age group difference in immediate spatial memory (see last paragraph), we also analyzed spatial memory retention for only well-learned pairs to control for encoding strength (see supplement Results B; Table S2; Figure S1). Here, we found a significant interaction between age group and session ($p$ = .028), indicating a more robust spatial memory retention in adults compared to 6-8YO children ($p$ = .012) and 9-11YO children ($p$ < .001) for well-learned information. 
+
+Taken together, children generally had a robust navigation-based memory consolidation similar to adults. In an exploratory analysis, we found tentative evidence that adults have a more robust spatial memory consolidation for initially well-learned information. 
+
+```{r, include=F }
+plot.ms_all <- plot.ms_all + theme(legend.position="none")
+ggsave("../WP10_data/Plots/memory_probe_con.jpg", plot.ms_all, width=4.3, height=4, dpi=600)
+
+rm(plot.ms_all)
+```
+
+```{r, include=F}
+rm(model.ms_all, apa_lmm.ms_all, apa_post.ms_all_group, apa_post.ms_all_group_chance, apa_post.ms_all_condition, apa_post.ms_all_session, apa_post.ms_all_omega_group, apa_post.ms_all_omega_condition, apa_post.ms_all_omega_session, apa_rs.condition, apa_rs.session)
+```
+
+\newpage
+
+### **Post-navigational memory tasks**
+
+```{r, model_post_layout, include=F }
+```
+
+```{r, plot_post_layout, include=F }
+```
+
+```{r, model_post_landmark, include=F }
+```
+
+```{r, plot_post_landmark, include=F }
+```
+
+```{r, model_post_position, include=F }
+```
+
+```{r, plot_post_position, include=F }
+```
+
+### **Layout**
+
+```{r apa_layout, include=F}
+apa_fisher.layout <- model.layout %>% pluck("p.value") %>% apa_p(add_equals=T)
+
+apa_post.layout_young_vs_old <- post.layout$p.adj[1] %>% apa_p(add_equals=T)
+apa_post.layout_young_vs_adult <- post.layout$p.adj[2] %>% apa_p(add_equals=T)
+apa_post.layout_old_vs_adult <- post.layout$p.adj[3] %>% apa_p(add_equals=T)
+
+apa_post.layout_change_young <- post.layout_change_young %>% apa_print()
+apa_post.layout_change_old <- post.layout_change_old %>% apa_print()
+apa_post.layout_change_adult <- post.layout_change_adult %>% apa_print()
+
+rm(post.layout, post.layout_change_young, post.layout_change_old, post.layout_change_adult)
+```
+
+Further, we analyzed the accuracy in the spatial knowledge tasks that were administered after two weeks (Figure 3B). 
+
+We found significant age differences in the ability to identify the maze boundary (Fisher's exact test $p$ `r apa_fisher.layout`). 6-8YO children performed worse than 9-11YO children ($p$ `r apa_post.layout_young_vs_old`) and adults ($p$ `r apa_post.layout_young_vs_adult`), and 9-11YO children worse than adults ($p$ `r apa_post.layout_old_vs_adult`). The performance of 6-8YO children did not differ from chance (`r apa_post.layout_change_young$statistic`), indicating that they chose randomly. In contrast, almost half of the 9-11YO children and almost all adults selected the correct option. 
+
+```{r, include=F}
+rm(model.layout, apa_fisher.layout, apa_post.layout_young_vs_old, apa_post.layout_young_vs_adult, apa_post.layout_old_vs_adult, apa_post.layout_change_young, apa_post.layout_change_old, apa_post.layout_change_adult)
+```
+
+### **Landmarks**
+
+```{r apa_landmark, include=F}
+apa_aov.landmark <- apa_print(model.landmark)
+```
+
+There were no significant age differences in the ability to correctly identify landmark objects (`r apa_aov.landmark$statistic$group`). 
+
+```{r, include=F}
+rm(model.landmark, apa_aov.landmark)
+```
+
+### **Positioning**
+
+```{r apa_position, include=F}
+apa_aov.position <- apa_print(model.position)
+
+apa_post.position <- post.position$contrasts %>% apa_print() %>% apa_bonferroni_fix()
+rm(post.position)
+```
+
+Lastly, we did find significant age differences in the ability to correctly position the landmark and goal objects in a map (`r apa_aov.position$statistic$group`). Here, adults performed significantly better than 6-8YO children (`r apa_post.position$statistic$YoungKids_YoungAdults`) and 9-11YO children (`r apa_post.position$statistic$OldKids_YoungAdults`), while there was no difference between both child groups (`r apa_post.position$statistic$YoungKids_OldKids`). 
+
+Taken together, both groups of children were as proficient as adults in identifying perceptually detailed landmarks. However, adults had superior boundary knowledge and cognitive maps at the end of the experiment. 
+
+```{r, include=F}
+rm(model.position, apa_aov.position, apa_post.position)
+```
+
+```{r, include=F}
+plot.layout <- plot.layout + theme(legend.position="none")
+ggsave("../WP10_data/Plots/post_layout.jpg", plot.layout, width=2.2, height=3.3, dpi=600)
+
+plot.landmark <- plot.landmark + theme(legend.position="none")
+ggsave("../WP10_data/Plots/post_landmark.jpg", plot.landmark, width=2.2, height=3.3, dpi=600)
+
+plot.position <- plot.position + theme(legend.position="none")
+ggsave("../WP10_data/Plots/post_position.jpg", plot.position, width=2.2, height=3.3, dpi=600)
+
+rm(plot.layout, plot.landmark, plot.position)
+```
+
+\newpage 
+
+## Partial Least Square Correlation (PLSC) analysis
+
+```{r, plot_plsc_lv_learn, include=F}
+```
+
+```{r, plot_plsc_age_x_lp_nav_learn, include=F}
+```
+
+```{r, plot_plsc_memory_x_lp_nav_learn, include=F}
+```
+
+```{r apa_plsc_learn, include=F}
+# LV 
+apa_lv.p <- lv.p
+apa_lv.cor <- lv.cor
+apa_lv.ulcor <- lv.ulcor
+apa_lv.llcor <- lv.llcor
+# ($r$ = `r apa_lv.cor`, 95% CI[`r apa_lv.llcor`, `r apa_lv.ulcor`])
+
+# BSR
+apa_bsr <- bsr %>% 
+  select(name, value) %>% 
+  pivot_wider(names_from=name, values_from=value) %>% apa_num()
+
+rm(lv.p, lv.cor, lv.ulcor, lv.llcor)
+```
+
+```{r apa_plsc_nav_learn, include=F}
+p_bonferroni4 <- "$p_\\mathrm{Bonferroni(4)}$"
+
+# LP correlations
+apa_model.age_lp_n <- model.age_lp_nav_learn %>% apa_print() %>% apa_correlation_fix()
+
+apa_model.lp_n_ego_1 <- model.lp_n_ego_1 %>% apa_print() %>% apa_correlation_fix(addp=F)
+apa_model.lp_n_ego_2 <- model.lp_n_ego_2 %>% apa_print() %>% apa_correlation_fix(addp=F)
+apa_model.p_lp_n_ego <- model.comp_lp_n_ego$p$`p_bonf(4)` %>% as.numeric() %>% apa_p(add_equals=T)
+
+apa_model.lp_n_allo_1 <- model.lp_n_allo_1 %>% apa_print() %>% apa_correlation_fix(addp=F)
+apa_model.lp_n_allo_2 <- model.lp_n_allo_2 %>% apa_print() %>% apa_correlation_fix(addp=F)
+apa_model.p_lp_n_allo <- model.comp_lp_n_allo$p$`p_bonf(4)` %>% as.numeric() %>% apa_p(add_equals=T)
+
+apa_model.p_lp_n_ego_allo_1 <- model.comp_lp_n_ego_allo_1$p$`p_bonf(4)` %>% as.numeric() %>% apa_p(add_equals=T)
+apa_model.p_lp_n_ego_allo_2 <- model.comp_lp_n_ego_allo_2$p$`p_bonf(4)` %>% as.numeric() %>% apa_p(add_equals=T)
+
+rm(model.age_lp_nav_learn, model.lp_n_ego_1, model.lp_n_ego_2, model.lp_n_allo_1, model.lp_n_allo_2, model.comp_lp_n_ego, model.comp_lp_n_allo, model.comp_lp_n_ego_allo_1, model.comp_lp_n_ego_allo_2)
+```
+
+Finally, we tested if age-related variations in navigation behavior during training predict spatial memory. We applied PLSC and identified a single reliable LV ($p$ `r apa_lv.p`; Figure 4A) that maximally represented associations between age and a profile of navigation indicators from training trials in the learning session (`r apa_model.age_lp_n$r_and_p`). We identified several stable components within the multivariate profile (BSR; values ±1.96 are significant α < .05), paralleling our previous results. Higher age was associated with shorter latency (BSR = `r apa_bsr$latency`), more direct navigation (excess path length; BSR = `r apa_bsr$excess_path`), and search near the goal (excess distance to goal; BSR = `r apa_bsr$excess_distance `) but not visual exploration (initial rotation; BSR = `r apa_bsr$initial_rotation `). 
+
+As a second step, we computed a latent profile score (LPS) for each participant. A more positive navigation LPS indicates that an individual expressed the age-related navigation profile more strongly (i.e., more adult-like). We then correlated the LPS with immediate and long-delay egocentric and allocentric memory scores (Table 5; Figure 4B). The navigation LPS correlated significantly with immediate egocentric (`r apa_model.lp_n_ego_1$r_and_p`) and long-delay egocentric memory (`r apa_model.lp_n_ego_2$r_and_p`), and the former was significantly higher than the latter (`r p_bonferroni4` `r apa_model.p_lp_n_ego`). The navigation LPS also correlated significantly with immediate allocentric (`r apa_model.lp_n_allo_1$r_and_p`) and long-delay allocentric memory (`r apa_model.lp_n_allo_2$r_and_p`). The correlation with immediate egocentric memory was significantly higher than with immediate allocentric memory (`r p_bonferroni4` `r apa_model.p_lp_n_ego_allo_1`). Taken together, we found that participants with a more efficient, adult-like navigation profile during training had better spatial memory in egocentric and allocentric probe trials, both immediately and after a two-week delay. There was a particularly strong association with immediate egocentric memory.
+
+```{r include=F}
+rm(apa_lv.p, apa_lv.cor, apa_lv.ulcor, apa_lv.llcor, apa_bsr, apa_model.age_lp_n, apa_model.lp_n_ego_1, apa_model.lp_n_ego_2, apa_model.lp_n_allo_1, apa_model.lp_n_allo_2, apa_model.p_lp_n_ego, apa_model.p_lp_n_allo, apa_model.p_lp_n_ego_allo_1, apa_model.p_lp_n_ego_allo_2)
+```
+
+```{r, include=F}
+ggsave("../WP10_data/Plots/bsr_learn.jpg", plot.bsr_learn, width=4, height=3.5, dpi=600)
+
+plot.age_x_lp_nav_learn <-  plot.age_x_lp_nav_learn + theme(legend.position="none")
+ggsave("../WP10_data/Plots/age_x_lp_nav_learn.jpg", plot.age_x_lp_nav_learn, width=2, height=3, dpi=600)
+
+ggsave("../WP10_data/Plots/mem_x_lp_nav_learn.jpg", plot.mem_x_lp_nav_learn, width=3, height=3, dpi=600)
+
+rm(plot.bsr_learn, plot.age_x_lp_nav_learn)
+```
+
+\newpage
+
+# Supplementary material 
+
+## Motor control task 
+
+```{r, model_motor_control, include=F }
+```
+
+```{r apa_motor_control, include=F}
+apa_aov.motor_latency <- apa_print(model.motor_latency)
+post_aov.motor_latency_group <- post.motor_latency %>% apa_print() %>% apa_bonferroni_fix()
+rm(model.motor_latency, post.motor_latency)
+
+apa_aov.motor_path <- apa_print(model.motor_path)
+post_aov.motor_path_group <- post.motor_path %>% apa_print() %>% apa_bonferroni_fix()
+rm(model.motor_path, post.motor_path)
+
+rm(practise)
+```
+
+There were significant age group differences in the ability to use a joystick during practise. Specifically, 6-8YO children required more time to solve the task (`r apa_aov.motor_latency$statistic$group`; 6-8YO vs. 9-11YO: `r post_aov.motor_latency_group$statistic$YoungKids_OldKids`; 6-8YO vs. AD: `r post_aov.motor_latency_group$statistic$YoungKids_YoungAdults`) and had longer excess paths (`r apa_aov.motor_path$statistic$group`; 6-8YO vs. 9-11YO: `r post_aov.motor_path_group$statistic$YoungKids_OldKids`; 6-8YO vs. AD: `r post_aov.motor_path_group$statistic$YoungKids_YoungAdults`). We wanted to account for this potential confounder and computed a composite score by averaging the z-scored latency and z-scored excess path length during practise that we used as a model covariate in all our LMM.  
+
+## Number of excluded trials 
+
+```{r, echo=F, fig.height=3, fig.width=3, fig.cap="Overview of excluded trials." }
+
+data_excluded <- sm_orig %>% 
+  group_by(id, group) %>% 
+  count(exclude_trial_matlab) %>% 
+  ungroup() %>% 
+  complete(exclude_trial_matlab, nesting(id, group), fill=list(n=0))
+
+n_excluded_p <- data_excluded %>% 
+  filter(exclude_trial_matlab==1) %>% 
+  ungroup %>%   
+  summarise(min=min(n), max=max(n), mean=mean(n), sd=sd(n)) %>% 
+  mutate_all(round, 2)
+
+n_excluded_t <- sm_orig %>% 
+  count(exclude_trial_matlab)
+
+ggplot(data_excluded %>% filter(exclude_trial_matlab==1), aes(x=n, fill=group, color=group)) + 
+  geom_histogram(binwidth=1) + 
+  scale_fill_manual(labels=group_labels, values=group_colors_f) + 
+  scale_color_manual(labels=group_labels, values=group_colors_c) +
+  theme_classic(base_size=13) + 
+  theme(legend.position=c(0.8,0.8),
+        legend.key.size=unit(0.5, 'cm')) + 
+  labs(subtitle="Number of excluded trials",
+       x="n trials",
+       y="n participants")
+
+rm(data_excluded)
+```
+
+How many trials were marked for exclusion?
+
+Percentage of excluded trials among all trials: `r round((n_excluded_t %>%  filter(exclude_trial_matlab==1) %>% pull) / (n_excluded_t %>% filter(exclude_trial_matlab==0) %>% pull) * 100, 2)` % 
+
+N per participant 
+min: `r n_excluded_p %>% select(min) %>% pull`
+max: `r n_excluded_p %>% select(max) %>% pull`
+mean: `r n_excluded_p %>% select(mean) %>% pull`
+sd: `r n_excluded_p %>% select(sd) %>% pull`
+
+\newpage
+
+## Memory consolidation control analysis
+
+### **Memory score (all probe trials with well-learned pairs)**
+
+```{r, model_probe_ms_wl }
+```
+
+```{r, fixef_probe_ms_wl, include=F }
+```
+
+```{r, ranef_probe_ms_wl, include=F }
+```
+
+```{r, post_hoc_probe_ms_wl, include=F }
+```
+
+```{r, plot_probe_ms_wl, include=F }
+```
+
+```{r apa_probe_ms_wl, include=F}
+
+# model fit 
+R2 <- r2beta(model.ms_wl$full_model, method='nsj', partial=F) %>% mutate_all(apa_num)
+
+# fixed effects 
+apa_lmm.ms_wl <- apa_print(model.ms_wl)
+
+# group x session 
+apa_post.ms_wl_omega_group_session <- omega.ms_wl %>% 
+  filter(Parameter=="group:session") %>% select(Omega2_partial) %>% apa_num()
+
+apa_post.ms_wl_group_session <- post.ms_wl_group_session %>%  apa_print() %>% apa_bonferroni_fix()
+
+# group 
+apa_post.ms_wl_omega_group <- omega.ms_wl %>% 
+  filter(Parameter=="group") %>% select(Omega2_partial) %>% apa_num()
+
+# condition 
+apa_post.ms_wl_omega_condition <- omega.ms_wl %>% 
+  filter(Parameter=="condition") %>% select(Omega2_partial) %>% apa_num()
+
+apa_post.ms_wl_condition <- post.ms_wl_condition %>%  apa_print()
+
+# session 
+apa_post.ms_wl_omega_session <- omega.ms_wl %>% 
+  filter(Parameter=="session") %>% select(Omega2_partial) %>% apa_num()
+
+# random effects LRT 
+apa_rs.session <- LRT.ms_wl %>% mutate_at(vars(Chisq, Df), apa_df) %>% mutate_at(vars(p), apa_p, add_equals=T)
+
+# reduced sample size 
+n_wl <- data_p_w %>% group_by(id, group) %>% summarize(m = mean(memory_score, na.rm=T)) %>% ungroup() %>% count(group)
+n_wl_YK <- n_wl %>% filter(group=="YoungKids") %>% pull
+n_wl_OK <- n_wl %>% filter(group=="OldKids") %>% pull
+n_wl_AD <- n_wl %>% filter(group=="YoungAdults") %>% pull
+
+rm(post.ms_wl_group_session, post.ms_wl_condition, LRT.ms_wl, omega.ms_wl, n_wl)
+```
+
+We ran a control analysis to further explore if encoding account for the absence of age-related differences in spatial memory consolidation.
+Here, we computed a LMM with the memory score, including only object-location pairs that were well-learned in the first session. Well-learned was defined as finding the correct goal (i.e., pressing the button in the correct alley or the adjacent intersection) in at least two out of three learning session probe trials in both egocentric and allocentric conditions. Trials with object-location pairs that did not meet this criterion were excluded. This reduced our sample to n = `r n_wl_YK` 6-8YO, n = `r n_wl_OK` 9-11YO, and n = `r n_wl_AD` adults.
+
+The results paralleled our previous analysis, namely we found main effects for age group (`r gsub(".*, ", "", apa_lmm.ms_wl$statistic$group)`; see statistics in Table S2, Figure S1), condition (`r gsub(".*, ", "", apa_lmm.ms_wl$statistic$condition)`), and session (`r gsub(".*, ", "", apa_lmm.ms_wl$statistic$session)`). In addition, we did find evidence for an interaction between age group and session for well-learned pairs (`r gsub(".*, ", "", apa_lmm.ms_wl$statistic$group_session)`). Post-hoc contrasts showed that while there were no age-related performance differences for well-learned pairs during learning, adults remembered them significantly better than both 6-8YO children (`r apa_post.ms_wl_group_session$statistic$X2__YoungKids_YoungAdults`) and 9-11YO children (`r apa_post.ms_wl_group_session$statistic$X2__OldKids_YoungAdults`) after the two-week delay period. This implies that adults profit from superior consolidation compared to children when having a comparable level of encoding. 
+
+The LMM had a significantly better fit when including the random slope for session ($\chi^2$(`r apa_rs.session$Df`) = `r apa_rs.session$Chisq`, p `r apa_rs.session$p`), meaning that there was interindividual variation in participant's forgetting rates across the two-week delay period.
+
+```{r,include=F}
+plot.ms_wl <- plot.ms_wl + theme(legend.position="none")
+ggsave("../WP10_data/Plots/memory_probe_con_wl.jpg", plot.ms_wl, width=4.6, height=4, dpi=600)
+
+rm(plot.ms_wl)
+```
+
+```{r, include=F}
+rm(model.ms_wl, apa_lmm.ms_wl, apa_post.ms_wl_group_session,apa_post.ms_wl_condition, apa_post.ms_wl_omega_group_session, apa_post.ms_wl_omega_group, apa_post.ms_wl_omega_condition, apa_post.ms_wl_omega_session, apa_rs.session, n_wl_YK, n_wl_OK, n_wl_AD)
+```

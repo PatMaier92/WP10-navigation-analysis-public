@@ -1,0 +1,374 @@
+---
+title: "Table creator"
+author: "Patrizia Maier"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  bookdown::word_document2:
+    fig_caption: yes
+    global_numbering: TRUE
+    number_sections: TRUE
+---
+
+```{r setup, include=FALSE, cache=FALSE}
+
+knitr::read_chunk('Script_02_Analyzer.R')
+knitr::opts_chunk$set(warning=FALSE, message=FALSE) 
+options(knitr.kable.NA='')
+```
+
+```{r, load_analysis_packages, include=FALSE, cache=FALSE}
+```
+
+```{r, include=FALSE}
+file_name <- "../WP10_data/WP10_results/wp10_navigation_data.RData"
+load(file_name)
+sm_orig <- sm_data 
+sm_data <- sm_data %>% filter(exclude_trial_matlab==0)
+rm(file_name)
+```
+
+```{r, include=FALSE}
+file_name <- "../WP10_data/WP10_results/wp10_plsc_by_age.mat"
+plsc_data_learn <- read.mat(file_name)
+rm(file_name)
+```
+
+```{r, data_prep, include=FALSE}
+```
+
+```{r, plot_settings, include=FALSE}
+```
+
+```{r, analysis_settings, include=FALSE}
+```
+
+```{r, papaja_output_helper, include=FALSE}
+```
+
+# Demographics 
+
+```{r, table_demo, include=FALSE}
+```
+
+```{r, echo=F, message=F, warning=F }
+theme_gtsummary_mean_sd()
+demo_table
+
+rm(demo_table)
+```
+
+\newpage
+ 
+# Learning session
+
+## Training trials 
+
+```{r, model_train_latency, include=F }
+```
+
+```{r, fixef_train_latency, include=F  }
+```
+
+```{r apa_train_latency, include=F}
+
+# fixed effects 
+apa_lmm.latency_train  <- apa_print(model.latency_train)
+
+apa_omega.latency_train <- omega.latency_train$Omega2_partial %>% apa_num()
+
+apa_latency_train_fixed <- apa_lmm.latency_train$table %>% 
+  list_modify("omega"=apa_omega.latency_train) %>% label_variable(omega="$\\omega^2$")
+
+# random effects
+apa_latency_train_random <- apa_random_table(VarCorr(model.latency_train$full_model)) %>% select(-r)
+
+
+rm(apa_lmm.latency_train, omega.latency_train, apa_omega.latency_train, model.latency_train)
+```
+
+```{r, model_train_path, include=F  }
+```
+
+```{r, fixef_train_path, include=F  }
+```
+
+```{r apa_train_path, include=F}
+
+# fixed effects 
+apa_lmm.path_train <- apa_print(model.path_train)
+
+apa_omega.path_train <- omega.path_train$Omega2_partial %>% apa_num()
+
+apa_path_train_fixed <- apa_lmm.path_train$table %>% 
+  list_modify("omega"=apa_omega.path_train) %>% label_variable(omega="$\\omega^2$")
+
+# random effects
+apa_path_train_random <- apa_random_table(VarCorr(model.path_train$full_model)) %>% select(-r)
+
+
+rm(apa_lmm.path_train, omega.path_train, apa_omega.path_train, model.path_train)
+```
+
+```{r, model_train_distance, include=F  }
+```
+
+```{r, fixef_train_distance, include=F  }
+```
+
+```{r apa_train_distance, include=F}
+
+# fixed effects 
+apa_lmm.distance_train <- apa_print(model.distance_train)
+
+apa_omega.distance_train <- omega.distance_train$Omega2_partial %>% apa_num()
+
+apa_distance_train_fixed <- apa_lmm.distance_train$table %>% 
+  list_modify("omega"=apa_omega.distance_train) %>% label_variable(omega="$\\omega^2$")
+
+# random effects
+apa_distance_train_random <- apa_random_table(VarCorr(model.distance_train$full_model)) %>% select(-r)
+
+
+rm(apa_lmm.distance_train, omega.distance_train, apa_omega.distance_train, model.distance_train)
+```
+
+```{r, model_train_initial_rotation, include=F  }
+```
+
+```{r, fixef_train_initial_rotation, include=F  }
+```
+
+```{r apa_train_initial_rotation, include=F }
+
+# fixed effects
+apa_lmm.initial_rotation_train <- apa_print(model.initial_rotation_train)
+
+apa_omega.initial_rotation_train <- omega.initial_rotation_train$Omega2_partial %>% apa_num()
+
+apa_initial_rotation_train_fixed <- apa_lmm.initial_rotation_train$table %>% 
+  list_modify("omega"=apa_omega.initial_rotation_train) %>% label_variable(omega="$\\omega^2$")
+
+# random effects
+apa_initial_rotation_train_random <- apa_random_table(VarCorr(model.initial_rotation_train$full_model)) %>% select(-r)
+
+
+rm(apa_lmm.initial_rotation_train, omega.initial_rotation_train, apa_omega.initial_rotation_train, model.initial_rotation_train)
+```
+
+```{r apa_table_train_fixed, echo=F}
+apa_table(
+  cbind(apa_latency_train_fixed,
+        apa_path_train_fixed %>% list_modify("term"=NULL), 
+        apa_distance_train_fixed %>% list_modify("term"=NULL), 
+        apa_initial_rotation_train_fixed %>% list_modify("term"=NULL))
+  )
+
+rm(apa_latency_train_fixed, apa_path_train_fixed, apa_distance_train_fixed, apa_initial_rotation_train_fixed)
+```
+
+```{r, apa_table_train_random, echo=F }
+apa_table(
+  cbind(apa_latency_train_random,
+        apa_path_train_random %>% list_modify("Grouping"=NULL, "Random effect"=NULL),
+        apa_distance_train_random %>% list_modify("Grouping"=NULL, "Random effect"=NULL),
+        apa_initial_rotation_train_random %>% list_modify("Grouping"=NULL, "Random effect"=NULL))
+)
+
+rm(apa_latency_train_random, apa_path_train_random, apa_distance_train_random, apa_initial_rotation_train_random)
+```
+
+\newpage
+
+## Probe trials
+
+```{r, model_probe_ms, include=F  }
+```
+
+```{r, fixef_probe_ms, include=F  }
+```
+
+```{r, ranef_probe_ms, include=F  }
+```
+
+```{r apa_probe_ms, include=F}
+
+# fixed effects
+apa_lmm.ms <- apa_print(model.ms)
+
+apa_omega.ms <- omega.ms$Omega2_partial %>% apa_num()
+
+apa_ms_fixed <- apa_lmm.ms$table %>% 
+  list_modify("omega"=apa_omega.ms) %>% label_variable(omega="$\\omega^2$")
+
+# random effects
+apa_LRT.ms <- tibble("Grouping" = c("Id", "Id", "Id")) %>% 
+  cbind("Random effect" = c("(Intercept)", "Condition1", "(Intercept) X Condition1")) %>% 
+  cbind("p.value" = c(NA, LRT.ms$p %>% apa_p(), NA)) 
+
+apa_ms_random <- apa_random_table(VarCorr(model.ms$full_model), apa_LRT.ms) 
+
+
+rm(apa_lmm.ms, omega.ms, apa_omega.ms, LRT.ms, apa_LRT.ms, model.ms)
+```
+
+```{r apa_table_probe_ms_fixed, echo=F}
+apa_table(apa_ms_fixed)
+
+rm(apa_ms_fixed)
+```
+
+```{r, apa_table_probe_ms_random, echo=F }
+apa_table(apa_ms_random)
+
+rm(apa_ms_random)
+```
+
+\newpage
+
+# Long-term memory after consolidation period 
+
+## Probe trials 
+
+```{r, model_probe_ms_all, include=F  }
+```
+
+```{r, fixef_probe_ms_all, include=F  }
+```
+
+```{r, ranef_probe_ms_all, include=F  }
+```
+
+```{r apa_probe_ms_all, include=F}
+
+# fixed effects 
+apa_lmm.ms_all <- apa_print(model.ms_all)
+
+apa_omega.ms_all <- omega.ms_all$Omega2_partial %>% apa_num()
+
+apa_ms_all_fixed <- apa_lmm.ms_all$table %>% 
+  list_modify("omega"=apa_omega.ms_all) %>% label_variable(omega="$\\omega^2$")
+
+# random effects
+apa_LRT.ms_all <- tibble("Grouping" = c("Id", "Id", "Id", "Id", "Id", "Id")) %>% 
+  cbind("Random effect" = c("(Intercept)",  "Session1", "Condition1", 
+                            "(Intercept) X Session1", "(Intercept) X Condition1", "Session1 X Condition1")) %>% 
+  cbind("p.value" = c(NA, LRT.ms_all_session$p %>% apa_p(), LRT.ms_all_condition$p %>% apa_p(), NA, NA, NA)) 
+
+apa_ms_all_random <- apa_random_table(VarCorr(model.ms_all$full_model), apa_LRT.ms_all) 
+
+
+rm(apa_lmm.ms_all, omega.ms_all , apa_omega.ms_all, LRT.ms_all_session, LRT.ms_all_condition, apa_LRT.ms_all, model.ms_all)
+```
+
+```{r apa_table_probe_ms_all_fixed, echo=F}
+apa_table(
+  apa_ms_all_fixed
+)
+
+rm(apa_ms_all_fixed)
+```
+
+```{r apa_table_probe_ms_all_random, echo=F}
+apa_table(
+  apa_ms_all_random
+)
+
+rm(apa_ms_all_random)
+```
+
+\newpage
+
+## Supplement: Probe trials well-learned
+
+```{r, model_probe_ms_wl, include=F  }
+```
+
+```{r, fixef_probe_ms_wl, include=F  }
+```
+
+```{r, ranef_probe_ms_wl, include=F  }
+```
+
+```{r apa_probe_ms_wl, include=F}
+
+# fixed effects 
+apa_lmm.ms_wl <- apa_print(model.ms_wl)
+
+apa_omega.ms_wl <- omega.ms_wl$Omega2_partial %>% apa_num()
+
+apa_ms_wl_fixed <- apa_lmm.ms_wl$table %>% 
+  list_modify("omega"=apa_omega.ms_wl) %>% label_variable(omega="$\\omega^2$")
+
+# random effects 
+apa_LRT.ms_wl <- tibble("Grouping" = c("Id", "Id", "Id")) %>% 
+  cbind("Random effect" = c("(Intercept)", "Session1", "(Intercept) X Session1")) %>% 
+  cbind("p.value" = c(NA, LRT.ms_wl$p %>% apa_p(), NA)) 
+
+apa_ms_wl_random <- apa_random_table(VarCorr(model.ms_wl$full_model), apa_LRT.ms_wl) 
+
+
+rm(apa_lmm.ms_wl, omega.ms_wl , apa_omega.ms_wl, LRT.ms_wl, apa_LRT.ms_wl, model.ms_wl)
+```
+
+```{r apa_table_probe_ms_wl_fixed, echo=F}
+apa_table(
+  apa_ms_wl_fixed
+  )
+
+rm(apa_ms_wl_fixed)
+```
+
+```{r apa_table_probe_ms_wl_random, echo=F}
+apa_table(
+  apa_ms_wl_random
+  )
+
+rm(apa_ms_wl_random)
+```
+
+\newpage
+
+## PLSC analyis: Correlations LPS with memory 
+
+```{r, plot_plsc_age_x_lp_nav_learn, include=F}
+```
+
+```{r, plot_plsc_memory_x_lp_nav_learn, include=F}
+```
+
+```{r apa_plsc_nav_learn, include=F}
+# LP correlations
+apa_model.lp_n_ego_1 <- model.lp_n_ego_1 %>% apa_print() 
+apa_model.lp_n_ego_2 <- model.lp_n_ego_2 %>% apa_print()
+apa_model.p_lp_n_ego <- model.comp_lp_n_ego$p$`p_bonf(4)` %>% as.numeric() %>% apa_p(add_equals=T)
+
+apa_model.lp_n_allo_1 <- model.lp_n_allo_1 %>% apa_print() 
+apa_model.lp_n_allo_2 <- model.lp_n_allo_2 %>% apa_print()
+apa_model.p_lp_n_allo <- model.comp_lp_n_allo$p$`p_bonf(4)` %>% as.numeric() %>% apa_p(add_equals=T)
+
+apa_model.p_lp_n_ego_allo_1 <- model.comp_lp_n_ego_allo_1$p$`p_bonf(4)` %>% as.numeric() %>% apa_p(add_equals=T)
+apa_model.p_lp_n_ego_allo_2 <- model.comp_lp_n_ego_allo_2$p$`p_bonf(4)` %>% as.numeric() %>% apa_p(add_equals=T)
+
+rm(model.lp_n_ego_1, model.lp_n_ego_2, model.lp_n_allo_1, model.lp_n_allo_2, model.comp_lp_n_ego, model.comp_lp_n_allo, model.comp_lp_n_ego_allo_1, model.comp_lp_n_ego_allo_2)
+```
+
+```{r apa_table_plsc_nav_learn, echo=F}
+p_bonferroni4 <- "$p_\\mathrm{Bonferroni(4)}$"
+Memory <- c("egocentric 1", "egocentric 2", "allocentric 1", "allocentric 2")
+s1_vs_s2 <- c(0, apa_model.p_lp_n_ego, 0, apa_model.p_lp_n_allo)
+ego_vs_allo <- c(apa_model.p_lp_n_ego_allo_1, apa_model.p_lp_n_ego_allo_2, 0, 0)
+apa_table(cbind(
+  Memory,
+  rbind(apa_model.lp_n_ego_1$table %>% label_variable(p.value=p_bonferroni4),
+        apa_model.lp_n_ego_2$table %>% label_variable(p.value=p_bonferroni4),
+        apa_model.lp_n_allo_1$table %>% label_variable(p.value=p_bonferroni4),
+        apa_model.lp_n_allo_2$table %>% label_variable(p.value=p_bonferroni4)),
+  s1_vs_s2,
+  ego_vs_allo))
+
+rm(apa_model.lp_n_ego_1, apa_model.lp_n_ego_2, apa_model.lp_n_allo_1, apa_model.lp_n_allo_2, Memory, s1_vs_s2, ego_vs_allo, p_bonferroni4)
+```
+
+```{r, include=F}
+rm(apa_model.p_lp_n_ego, apa_model.p_lp_n_allo, apa_model.p_lp_n_ego_allo_1, apa_model.p_lp_n_ego_allo_2)
+```
